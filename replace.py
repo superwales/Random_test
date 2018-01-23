@@ -1,4 +1,7 @@
 # -*- coding:UTF-8 -*-
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 import wx
 import v
 import time
@@ -49,7 +52,7 @@ class ReplaceFrame(wx.Frame):
         self.qran.SetLabel(quesname)
         v.reans=ansr
         self.question.AppendText(name)
-        v.total_num += 1
+        #v.total_num += 1
         self.totalnum.SetLabelText("已答题数:" + str(v.total_num))
         v.tstart = time.time()
         v.tstart1 = time.time()
@@ -81,13 +84,24 @@ class ReplaceFrame(wx.Frame):
         with open(filename2, 'a') as fileobject:
             fileobject.write(self.question.GetValue() + "||" + str(v.reans) + "||" + self.answ.GetValue() + "\n")
         if self.answ.GetValue() == str(v.reans):
-            self.con.SetValue("回答正确！\n本题用时%.2f秒" % tuse)
+            self.con.SetValue("回答正确！\n本题用时%.2f秒\n" % tuse)
             v.correct_num += 1
             self.correctnum.SetLabelText("正确题数:" + str(v.correct_num))
         else:
             with open(filename1, 'a') as fileobject:
                 fileobject.write(self.question.GetValue() + "||" + str(v.reans)+ "||" + self.answ.GetValue() + "\n")
-            self.con.SetValue("回答错误！正确答案是" + str(v.reans) + "\n本题用时%.2f秒" % tuse)
+            self.con.SetValue("回答错误！正确答案是" + str(v.reans) + "\n本题用时%.2f秒\n" % tuse)
+        self.question.Clear()
+        self.answ.Clear()
+        quesname = random.choice(v.relist)
+        name, ansr = replaceques(quesname)
+        self.qran.SetLabel(quesname)
+        v.total_num += 1
+        self.totalnum.SetLabelText("已答题数:" + str(v.total_num))
+        v.tstart = time.time()
+        v.reans = ansr
+        self.question.AppendText(name)
+        self.con.AppendText(str(ansr))
 
     def OnNex(self,e):
         self.question.Clear()
@@ -96,8 +110,8 @@ class ReplaceFrame(wx.Frame):
         quesname = random.choice(v.relist)
         name, ansr = replaceques(quesname)
         self.qran.SetLabel(quesname)
-        v.total_num += 1
-        self.totalnum.SetLabelText("已答题数:" + str(v.total_num))
+        #v.total_num += 1
+        #self.totalnum.SetLabelText("已答题数:" + str(v.total_num))
         v.tstart = time.time()
         v.reans=ansr
         self.question.AppendText(name)
