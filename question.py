@@ -1,18 +1,24 @@
 # -*- coding:UTF-8 -*-
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 import random
 import time
 from fractions import Fraction
 #getsymbol函数，返回一个运算符号
 def getoperators():
-    operatorslist=('+','-','*','/','+','-')
+    operatorslist=('+','-','×','÷','+','-')
     operators=random.choice(operatorslist)
-    if operators=='*':
+    if operators=='×':
         length=2
-    elif operators=='/':
+    elif operators=='÷':
         length=2
     else:
         length=1
     return operators,length
+
+
+
 
 #calculate函数，用于计算两个值的四则运算
 def calculate(n1,n2,op):
@@ -20,7 +26,7 @@ def calculate(n1,n2,op):
       ans=n1+n2
     elif op=='-':
       ans=n1-n2
-    elif op=='*':
+    elif op=='×':
       ans=n1*n2
     else:
         if n2==0:
@@ -47,7 +53,7 @@ def getoperands(range):
             operands1,operands2=operands2,operands1
         if operands1==operands2:
             operandsvalue=Fraction(1,2)
-            operands='(1/2)'
+            operands='1/2'
         else:
             operandsvalue=Fraction(operands2,operands1)
             operands=str(Fraction(operands2,operands1))
@@ -81,12 +87,12 @@ def getquestion(ran):#range是操作数的取值范围
     condition=0
     while len(questionstack)>1:
         for i in range(0,len(questionstack)):
-          if questionstack[i]=='*':
+          if questionstack[i]=='×':
             questionstack[i-1]=questionstack[i-1]*questionstack[i+1]
             del questionstack[i]
             del questionstack[i]
             break
-          elif questionstack[i]=='/':
+          elif questionstack[i]=='÷':
             questionstack[i-1]=questionstack[i-1]/questionstack[i+1]
             del questionstack[i]
             del questionstack[i]
@@ -116,7 +122,7 @@ def getquestionlist(num,ran):
     # 根据输入的题目个数生成题目清单，每一个新生成的题会与现有题进行比较，重复不则重新生成
     # 将生成的题目写入文件中，便于查看与打印
     while len(questionlist) < num:
-        (question, ans, length) = getquestion(ran)
+        (question, ans, length) = getlabelquestion('随机','随机',ran)
         cond = 0
         for element in questionlist:
             if element == question:
@@ -173,56 +179,92 @@ def deletei(txtname,i):
             # 写完最后一行后截断文件，因为删除操作，文件整体少了一行，原文件最后一行需要去掉
             new_file.truncate()
 
-def replaceques(question):
+def vfraction(str):
+    str1='1'
+    str2='1'
+    con=0
+    for i in range(0,len(str)-1):
+        if str[i]=='/':
+            str1=str[0:i]
+            str2=str[i+1:len(str)]
+            con=1
+    if con==0:
+        str1=str
+    return Fraction(int(str1),int(str2))
+
+def replacestr(ques,ques_1):
+    question = ques.encode('utf8')
+    # print question
     queslist = []
     requeslist = ''
-    requesstack=[]
+    requesstack = []
     k = 0
     for i in range(0, len(question) - 1):
-        if question[i] == "+" or question[i] == '-' or question[i] == '*' or question[i] == '/':  # 前处理
+        # print question[i:i+2]
+        if question[i] == "+":  # 前处理
             queslist.append(question[k:i])
             queslist.append(question[i])
             k = i + 1
+        elif question[i] == '-':
+            queslist.append(question[k:i])
+            queslist.append(question[i])
+            k = i + 1
+        elif question[i:i + 2] == '×':
+            queslist.append(question[k:i])
+            queslist.append(question[i:i + 2])
+            k = i + 2
+        elif question[i:i + 2] == '÷':
+            queslist.append(question[k:i])
+            queslist.append(question[i:i + 2])
+            k = i + 2
     queslist.append(question[k:len(question)])
-    #print queslist
+    # print queslist
     # print len(queslist)
     for i in range(0, len(queslist) - 1):
-        #print i
-        if queslist[i] == '+' or queslist[i] == '-' or queslist[i] == '*' or queslist[i] == '/':
-            deal = random.randint(1, 10)
-            if deal < 2:  # 删
+        # print i
+        if queslist[i] == '+' or queslist[i] == '-' or queslist[i] == '×' or queslist[i] == '÷':
+            if queslist[i-1]==ques_1:
+                requeslist = requeslist + queslist[i - 1] + queslist[i]
+                requesstack.append(vfraction(queslist[i - 1]))
+                requesstack.append(queslist[i])
                 continue
-                # del queslist[i - 1]
-                # del queslist[i]
-            elif deal > 1 and deal < 7:  # 增
-                add = random.randint(-1 * int(queslist[i - 1])+1, int(queslist[i - 1]))
-                queslist[i - 1] = str(int(queslist[i - 1]) + add)
-                requeslist = requeslist + queslist[i - 1] + queslist[i]
-                requesstack.append(Fraction(queslist[i - 1]))
-                requesstack.append(queslist[i])
             else:
-                o, w = getoperators()
-                queslist[i] = o
-                requeslist = requeslist + queslist[i - 1] + queslist[i]
-                requesstack.append(Fraction(queslist[i - 1]))
-                requesstack.append(queslist[i])
+                deal = random.randint(1, 10)
+                if deal < 2:  # 删
+                    continue
+                    # del queslist[i - 1]
+                    # del queslist[i]
+                elif deal > 1 and deal < 7:  # 增
+                    # dd = random.randint(-1 * int(queslist[i - 1])+1, int(queslist[i - 1]))
+                    add = random.randint(-1 * int(vfraction(queslist[i - 1])), int(vfraction(queslist[i - 1])))
+                    queslist[i - 1] = str(vfraction(queslist[i - 1]) + add)
+                    requeslist = requeslist + queslist[i - 1] + queslist[i]
+                    requesstack.append(vfraction(queslist[i - 1]))
+                    requesstack.append(queslist[i])
+                else:
+                    o, w = getoperators()
+                    queslist[i] = o
+                    requeslist = requeslist + queslist[i - 1] + queslist[i]
+                    requesstack.append(vfraction(queslist[i - 1]))
+                    requesstack.append(queslist[i])
+
     requeslist = requeslist + queslist[len(queslist) - 1]
-    requesstack.append(Fraction(queslist[len(queslist) - 1]))
-    for i in range(0,len(requesstack)-1):
-        if requesstack=='/':
-            frac=Fraction(requesstack[i-1],requesstack[i+1])
-            requesstack[i-1]=frac.numerator
-            requesstack[i+1]=frac.denominator
+    requesstack.append(vfraction(queslist[len(queslist) - 1]))
+    # for i in range(0,len(requesstack)-1):
+    # if requesstack[i]=='÷':
+    # frac=Fraction(requesstack[i-1],requesstack[i+1])
+    # requesstack[i-1]=frac.numerator
+    # requesstack[i+1]=frac.denominator
 
     condition = 0
     while len(requesstack) > 1:
         for i in range(0, len(requesstack)):
-            if requesstack[i] == '*':
+            if requesstack[i] == '×':
                 requesstack[i - 1] = requesstack[i - 1] * requesstack[i + 1]
                 del requesstack[i]
                 del requesstack[i]
                 break
-            elif requesstack[i] == '/':
+            elif requesstack[i:i] == '÷':
                 requesstack[i - 1] = requesstack[i - 1] / requesstack[i + 1]
                 del requesstack[i]
                 del requesstack[i]
@@ -238,100 +280,517 @@ def replaceques(question):
                 # print questionstack
     else:
         ans = requesstack[0]
-    return requeslist,ans
+    return requeslist, ans
 
-'''
-s = '14+256/37*10'
-t,a=replaceques(s)
-print t,a
-
-s='14+256/37*10'
-queslist=[]
-requeslist=''
-k=0
-for i in range(0,len(s)-1):
-    if s[i]=="+"or s[i]=='-' or s[i]=='*' or s[i]=='/':#前处理
-        queslist.append(s[k:i])
-        queslist.append(s[i])
-        k=i+1
-queslist.append(s[k:len(s)])
-print queslist
-#print len(queslist)
-for i in range(0,len(queslist)-1):
-    print i
-    if queslist[i] == '+'or queslist[i] == '-'or queslist[i] == '*'or queslist[i] == '/' :
-        deal = random.randint(1, 10)
-        if deal < 2:#删
-            continue
-            #del queslist[i - 1]
-            #del queslist[i]
-        elif deal > 1 and deal < 7:#增
-            add = random.randint(-1*int(queslist[i-1]), int(queslist[i-1]))
-            queslist[i-1]=str(int(queslist[i-1])+add)
-            requeslist=requeslist+queslist[i-1]+queslist[i]
-        else:
-            o,w=getoperators()
-            queslist[i]=o
-            requeslist = requeslist + queslist[i - 1] + queslist[i]
-requeslist=requeslist+queslist[len(queslist)-1]
-
-print queslist
-print requeslist'''
-
-
-
-'''
-#确定题目的个数和运算范围
-questionnumber=int(raw_input('请输入题目的个数：'))
-ran=int(raw_input('请输入运算范围：'))
-questionlist=[]#题目存在一个列表中
-anslist=[]#答案存在一个列表中
-lengthlist=[]#权重存在一个列表中
-scorelist=[]#分数存在一个列表中
-totalscore=0
-questionfile=file('questionlist.txt','w')
-#根据输入的题目个数生成题目清单，每一个新生成的题会与现有题进行比较，重复不则重新生成
-#将生成的题目写入文件中，便于查看与打印
-while len(questionlist)<questionnumber:
-    (question,ans,length)=getquestion(ran)
-    cond=0
-    for element in questionlist:
-        if element==question:
-            cond=1
-    if cond==0:
-        questionlist.append(question)
-        anslist.append(ans)
-        lengthlist.append(length)
-        totalscore=totalscore+length
-        questionfile.write(question+'\n')
-questionfile.close()
-print '题目已经生成完毕！'
-#根据权重分配分值
-for i in range(0,len(lengthlist)):
-    scorelist.append(round(lengthlist[i]*100/totalscore))         
-grade=0
-print '本次答题开始！共',questionnumber,'题，总分100分！'
-time_start=time.time()
-for i in range(0,questionnumber):
-    print'第',i+1,'题是：'
-    print questionlist[i],'='
-    print'分值为',scorelist[i],'分'
-    print '答案是：',anslist[i]
-    ans_user=raw_input('请输入你的答案：')
-    print '您的答案是：',ans_user
-    if ans_user==str(anslist[i]):
-        print'回答正确！'
-        grade=grade+scorelist[i]
+def calcustr(ques):
+    question = ques.encode('utf8')
+    # print question
+    queslist = []
+    requeslist = ''
+    requesstack = []
+    k = 0
+    for i in range(0, len(question) - 1):
+        # print question[i:i+2]
+        if question[i] == "+":  # 前处理
+            queslist.append(question[k:i])
+            queslist.append(question[i])
+            k = i + 1
+        elif question[i] == '-':
+            queslist.append(question[k:i])
+            queslist.append(question[i])
+            k = i + 1
+        elif question[i:i + 2] == '×':
+            queslist.append(question[k:i])
+            queslist.append(question[i:i + 2])
+            k = i + 2
+        elif question[i:i + 2] == '÷':
+            queslist.append(question[k:i])
+            queslist.append(question[i:i + 2])
+            k = i + 2
+    queslist.append(question[k:len(question)])
+    for i in range(0, len(queslist) - 1):
+        # print i
+        if queslist[i] == '+' or queslist[i] == '-' or queslist[i] == '×' or queslist[i] == '÷':
+            queslist[i-1]=vfraction(queslist[i-1])
+    queslist[len(queslist)-1]=vfraction(queslist[len(queslist) - 1])
+    condition = 0
+    while len(requesstack) > 1:
+        for i in range(0, len(requesstack)):
+            if requesstack[i] == '×':
+                requesstack[i - 1] = requesstack[i - 1] * requesstack[i + 1]
+                del requesstack[i]
+                del requesstack[i]
+                break
+            elif requesstack[i:i] == '÷':
+                requesstack[i - 1] = requesstack[i - 1] / requesstack[i + 1]
+                del requesstack[i]
+                del requesstack[i]
+                break
+            else:
+                condition = 1
+        if condition == 1:
+            if len(requesstack) > 1:
+                requesstack[0] = calculate(requesstack[0], requesstack[2], requesstack[1])
+                del requesstack[1]
+                del requesstack[1]
+                # print question
+                # print questionstack
     else:
-        print'回答错误！'
-time_end=time.time()
-time_use=time_end-time_start
-#这里设置一个题目权重与时间花费的关系k，默认为1
-k=1
-if time_use<totalscore*k:
-    print'答题时间符合要求！'
-    grade=grade
-else:
-    print'答题超时！'
-    grade=round(totalscore*grade/time_use)
-'''
+        ans = requesstack[0]
+    return ans
+
+def replaceques(ques):
+    con=0
+    if '(' in ques:
+        con=1
+    if con==0:
+        requeslist,ans=replacestr(ques,'')
+    elif con==1:
+        k1=ques.find('(')
+        k2=ques.find(')')
+        quesin=ques[k1+1:k2]
+        questem,anstem=replacestr(quesin,' ')
+        if '-' not in str(anstem):
+            quesin = '(' + quesin + ')'
+            ques = ques.replace(quesin, str(anstem))
+            requeslist, ans = replacestr(ques, str(anstem))
+            questem = '(' + questem + ')'
+            requeslist = requeslist.replace(str(anstem), questem)
+        else:
+            requeslist=questem
+            ans=anstem
+
+    return requeslist,ans
+#(9×4/9×2/7-6-6×1/2)+2/5
+#a='(3/5+2/3×6×2/9÷9-8-1/2)×8'
+#list,ans=replaceques(a)
+#print list
+#print ans
+#for i in range(0,len(a)):
+    #print a[i]
+#b=a[0:7]
+#c=a[6:11]
+#print b
+#print c
+
+def getoperatorslist(st):
+    if st=="随机":
+        list=['+','-','×','÷','+','-']
+    elif st=="无乘":
+        list = ['+', '-',  '÷', '+', '-']
+    elif st=="无除":
+        list = ['+', '-',  '×', '+', '-']
+    elif st=="无加":
+        list = ['×', '-',  '÷',  '-']
+    elif st=="无减":
+        list = ['+', '×',  '÷', '+']
+    elif st=="仅乘除":
+        list = ['×', '÷']
+    elif st=="仅加减":
+        list = ['+', '-']
+    elif st=="连乘":
+        list = ['×']
+    elif st=="连除":
+        list = ['÷']
+    elif st=="连加":
+        list = ['+']
+    elif st=="连减":
+        list = ['-']
+    return list
+
+def getlabeloperators(st):
+    operatorslist=getoperatorslist((st))
+    operators = random.choice(operatorslist)
+    if operators == '×':
+        length = 2
+    elif operators == '÷':
+        length = 2
+    else:
+        length = 1
+    return operators, length
+
+def getlabeloperands(st,range):
+    if st=="随机":
+        operandstype = random.randint(1, 2)
+        degree = 0
+        if operandstype == 1:
+            operands = random.randint(1, range)
+            operandsvalue = Fraction(operands, 1)
+            operands = str(operands)
+            degree = 1
+            # print operands
+        else:
+            operands1 = random.randint(1, range)
+            operands2 = random.randint(1, range)
+            degree = 1.5
+            if operands1 < operands2:
+                operands1, operands2 = operands2, operands1
+            if operands1 == operands2:
+                operandsvalue = Fraction(1, 2)
+                operands = '1/2'
+            else:
+                operandsvalue = Fraction(operands2, operands1)
+                operands = str(Fraction(operands2, operands1))
+    elif st=="整数":
+        operands = random.randint(1, range)
+        operandsvalue = Fraction(operands, 1)
+        operands = str(operands)
+        degree = 1
+    elif st=="真分数":
+        operands1 = random.randint(1, range)
+        operands2 = random.randint(1, range)
+        degree = 1.5
+        if operands1 < operands2:
+            operands1, operands2 = operands2, operands1
+        if operands1 == operands2:
+            operandsvalue = Fraction(1, 2)
+            operands = '1/2'
+        else:
+            operandsvalue = Fraction(operands2, operands1)
+            operands = str(Fraction(operands2, operands1))
+    return operands, operandsvalue, degree
+
+def getlabelquestionbyn(opestr,numstr,ran,n):
+    symbolnumber = n
+    question = ''
+    questionstack = []
+    ans = 0
+    length_ques = 0
+
+    for i in range(1, symbolnumber + 1):
+        (op, va, de) = getlabeloperands(numstr, ran)
+        operands = op
+        value = va
+        (operators, length) = getlabeloperators(opestr)
+        question = question + operands + operators
+        questionstack.append(value)
+        questionstack.append(operators)
+        length_ques = length_ques + length + de
+    (op, va, de) = getlabeloperands(numstr, ran)
+    operands = op
+    value = va
+    question = question + operands
+    questionstack.append(value)
+    length_ques = length_ques + de
+    # print question
+    # print questionstack
+    condition = 0
+    while len(questionstack) > 1:
+        for i in range(0, len(questionstack)):
+            if questionstack[i] == '×':
+                questionstack[i - 1] = questionstack[i - 1] * questionstack[i + 1]
+                del questionstack[i]
+                del questionstack[i]
+                break
+            elif questionstack[i] == '÷':
+                questionstack[i - 1] = questionstack[i - 1] / questionstack[i + 1]
+                del questionstack[i]
+                del questionstack[i]
+                break
+            else:
+                condition = 1
+        if condition == 1:
+            if len(questionstack) > 1:
+                questionstack[0] = calculate(questionstack[0], questionstack[2], questionstack[1])
+                del questionstack[1]
+                del questionstack[1]
+                # print question
+                # print questionstack
+    else:
+        ans = questionstack[0]
+    return question, ans, length_ques
+
+def getlabelquestion(opestr,numstr,ran):
+    questiontype=random.randint(1,6)
+    if questiontype<4:
+        symbolnumber = random.randint(1, 5)
+        question = ''
+        questionstack = []
+        ans = 0
+        length_ques = 0
+
+        for i in range(1, symbolnumber + 1):
+            (op, va, de) = getlabeloperands(numstr, ran)
+            operands = op
+            value = va
+            (operators, length) = getlabeloperators(opestr)
+            question = question + operands + operators
+            questionstack.append(value)
+            questionstack.append(operators)
+            length_ques = length_ques + length + de
+        (op, va, de) = getlabeloperands(numstr, ran)
+        operands = op
+        value = va
+        question = question + operands
+        questionstack.append(value)
+        length_ques = length_ques + de
+        # print question
+        # print questionstack
+        condition = 0
+        while len(questionstack) > 1:
+            for i in range(0, len(questionstack)):
+                if questionstack[i] == '×':
+                    questionstack[i - 1] = questionstack[i - 1] * questionstack[i + 1]
+                    del questionstack[i]
+                    del questionstack[i]
+                    break
+                elif questionstack[i] == '÷':
+                    questionstack[i - 1] = questionstack[i - 1] / questionstack[i + 1]
+                    del questionstack[i]
+                    del questionstack[i]
+                    break
+                else:
+                    condition = 1
+            if condition == 1:
+                if len(questionstack) > 1:
+                    questionstack[0] = calculate(questionstack[0], questionstack[2], questionstack[1])
+                    del questionstack[1]
+                    del questionstack[1]
+                    # print question
+                    # print questionstack
+        else:
+            ans = questionstack[0]
+    else:
+        n1=random.randint(1,5)
+        n2=random.randint(1,3)
+        n3=random.randint(1,5)
+        symbolnumber = n1
+        question = ''
+        questionstack = []
+        ans = 0
+        length_ques = 0
+
+        for i in range(1, symbolnumber + 1):
+            if i==n3:
+                (op,va,de)=getlabelquestionbyn(opestr,numstr,ran,n2)
+                operands = op
+                value = va
+                (operators, length) = getlabeloperators(opestr)
+                question = question +'('+ operands +')'+ operators
+                questionstack.append(value)
+                questionstack.append(operators)
+                length_ques = length_ques + length + de
+            else:
+                (op, va, de) = getlabeloperands(numstr, ran)
+                operands = op
+                value = va
+                (operators, length) = getlabeloperators(opestr)
+                question = question + operands + operators
+                questionstack.append(value)
+                questionstack.append(operators)
+                length_ques = length_ques + length + de
+
+        (op, va, de) = getlabeloperands(numstr, ran)
+        operands = op
+        value = va
+        question = question + operands
+        questionstack.append(value)
+        length_ques = length_ques + de
+        # print question
+        # print questionstack
+        condition = 0
+        while len(questionstack) > 1:
+            for i in range(0, len(questionstack)):
+                if questionstack[i] == '×':
+                    questionstack[i - 1] = questionstack[i - 1] * questionstack[i + 1]
+                    del questionstack[i]
+                    del questionstack[i]
+                    break
+                elif questionstack[i] == '÷':
+                    questionstack[i - 1] = questionstack[i - 1] / questionstack[i + 1]
+                    del questionstack[i]
+                    del questionstack[i]
+                    break
+                else:
+                    condition = 1
+            if condition == 1:
+                if len(questionstack) > 1:
+                    questionstack[0] = calculate(questionstack[0], questionstack[2], questionstack[1])
+                    del questionstack[1]
+                    del questionstack[1]
+                    # print question
+                    # print questionstack
+        else:
+            ans = questionstack[0]
+
+    return question, ans, length_ques
+
+def getdiyoperators(list):
+    operators = random.choice(list)
+    list.remove(operators)
+    if operators == '×':
+        length = 2
+    elif operators == '÷':
+        length = 2
+    else:
+        length = 1
+    return operators, length,list
+
+def getdiyquestionbylist(list,numstr,ran):
+    question = ''
+    questionstack = []
+    ans = 0
+    length_ques = 0
+
+    for i in range(1, len(list) + 1):
+        (op, va, de) = getlabeloperands(numstr, ran)
+        operands = op
+        value = va
+        (operators, length, list1) = getdiyoperators(list)
+        list = list1
+        question = question + operands + operators
+        questionstack.append(value)
+        questionstack.append(operators)
+        length_ques = length_ques + length + de
+    (op, va, de) = getlabeloperands(numstr, ran)
+    operands = op
+    value = va
+    question = question + operands
+    questionstack.append(value)
+    length_ques = length_ques + de
+    # print question
+    # print questionstack
+    condition = 0
+    while len(questionstack) > 1:
+        for i in range(0, len(questionstack)):
+            if questionstack[i] == '×':
+                questionstack[i - 1] = questionstack[i - 1] * questionstack[i + 1]
+                del questionstack[i]
+                del questionstack[i]
+                break
+            elif questionstack[i] == '÷':
+                questionstack[i - 1] = questionstack[i - 1] / questionstack[i + 1]
+                del questionstack[i]
+                del questionstack[i]
+                break
+            else:
+                condition = 1
+        if condition == 1:
+            if len(questionstack) > 1:
+                questionstack[0] = calculate(questionstack[0], questionstack[2], questionstack[1])
+                del questionstack[1]
+                del questionstack[1]
+                # print question
+                # print questionstack
+    else:
+        ans = questionstack[0]
+    return question, ans, length_ques
+
+def getdiyquestion(list,numstr,ran,brastr):
+    if brastr=="无":
+        question = ''
+        questionstack = []
+        ans = 0
+        length_ques = 0
+
+        for i in range(1, len(list) + 1):
+            (op, va, de) = getlabeloperands(numstr, ran)
+            operands = op
+            value = va
+            (operators, length, list1) = getdiyoperators(list)
+            list = list1
+            question = question + operands + operators
+            questionstack.append(value)
+            questionstack.append(operators)
+            length_ques = length_ques + length + de
+        (op, va, de) = getlabeloperands(numstr, ran)
+        operands = op
+        value = va
+        question = question + operands
+        questionstack.append(value)
+        length_ques = length_ques + de
+        # print question
+        # print questionstack
+        condition = 0
+        while len(questionstack) > 1:
+            for i in range(0, len(questionstack)):
+                if questionstack[i] == '×':
+                    questionstack[i - 1] = questionstack[i - 1] * questionstack[i + 1]
+                    del questionstack[i]
+                    del questionstack[i]
+                    break
+                elif questionstack[i] == '÷':
+                    questionstack[i - 1] = questionstack[i - 1] / questionstack[i + 1]
+                    del questionstack[i]
+                    del questionstack[i]
+                    break
+                else:
+                    condition = 1
+            if condition == 1:
+                if len(questionstack) > 1:
+                    questionstack[0] = calculate(questionstack[0], questionstack[2], questionstack[1])
+                    del questionstack[1]
+                    del questionstack[1]
+                    # print question
+                    # print questionstack
+        else:
+            ans = questionstack[0]
+    elif brastr=="有":
+        n1=random.randint(1,len(list)-1)
+        n2=len(list)-n1
+        n3=random.randint(1,n2)
+        list_in=[]
+        for i in range(1,n1+1):
+            kop=random.choice(list)
+            list_in.append(kop)
+            list.remove(kop)
+
+        question = ''
+        questionstack = []
+        ans = 0
+        length_ques = 0
+
+        for i in range(1, n2 + 1):
+            if i==n3:
+                (op,va,de)=getdiyquestionbylist(list_in,numstr,ran)
+                operands = op
+                value = va
+                (operators, length, list1) = getdiyoperators(list)
+                list = list1
+                question = question + '('+operands+')' + operators
+                questionstack.append(value)
+                questionstack.append(operators)
+                length_ques = length_ques + length + de
+            else:
+                (op, va, de) = getlabeloperands(numstr, ran)
+                operands = op
+                value = va
+                (operators, length, list1) = getdiyoperators(list)
+                list = list1
+                question = question + operands + operators
+                questionstack.append(value)
+                questionstack.append(operators)
+                length_ques = length_ques + length + de
+        (op, va, de) = getlabeloperands(numstr, ran)
+        operands = op
+        value = va
+        question = question + operands
+        questionstack.append(value)
+        length_ques = length_ques + de
+        # print question
+        # print questionstack
+        condition = 0
+        while len(questionstack) > 1:
+            for i in range(0, len(questionstack)):
+                if questionstack[i] == '×':
+                    questionstack[i - 1] = questionstack[i - 1] * questionstack[i + 1]
+                    del questionstack[i]
+                    del questionstack[i]
+                    break
+                elif questionstack[i] == '÷':
+                    questionstack[i - 1] = questionstack[i - 1] / questionstack[i + 1]
+                    del questionstack[i]
+                    del questionstack[i]
+                    break
+                else:
+                    condition = 1
+            if condition == 1:
+                if len(questionstack) > 1:
+                    questionstack[0] = calculate(questionstack[0], questionstack[2], questionstack[1])
+                    del questionstack[1]
+                    del questionstack[1]
+                    # print question
+                    # print questionstack
+        else:
+            ans = questionstack[0]
+    return question, ans, length_ques
