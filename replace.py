@@ -42,22 +42,26 @@ class ReplaceFrame(wx.Frame):
         self.Show(True)
 
     def OnSta(self,e):
-        filename = v.username + "_error.txt"
-        with open(filename)as f:
-            for line in f:
-                l = line.split("||")
-                v.relist.append(l[0])
-        quesname=random.choice(v.relist)
-        name,ansr=replaceques(quesname)
-        self.qran.SetLabel(quesname)
-        v.reans=ansr
-        self.question.AppendText(name)
-        #v.total_num += 1
-        self.totalnum.SetLabelText("已答题数:" + str(v.total_num))
-        v.tstart = time.time()
-        v.tstart1 = time.time()
-        self.con.Clear()
-        self.con.AppendText(str(ansr))
+        try:
+            filename = v.username + "_error.txt"
+            with open(filename)as f:
+                for line in f:
+                    l = line.split("||")
+                    v.relist.append(l[0])
+            quesname = random.choice(v.relist)
+            name, ansr = replaceques(quesname)
+            self.qran.SetLabel(quesname)
+            v.reans = ansr
+            self.question.AppendText(name)
+            # v.total_num += 1
+            self.totalnum.SetLabelText("已答题数:" + str(v.total_num))
+            v.tstart = time.time()
+            v.tstart1 = time.time()
+            self.con.Clear()
+            self.con.AppendText(str(ansr))
+        except IndexError:
+            self.con.AppendText('收藏夹中为空！')
+
 
         '''self.question.Clear()
         if self.qran.GetValue()=='':
