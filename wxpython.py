@@ -91,13 +91,7 @@ class LoFrame(wx.Frame):
                         result=True
                 if result==True:
                     wx.MessageBox("登录成功！")
-                    v.username=text_usr.GetText()
-                    filename1=v.username+"_error.txt"
-                    filename2=v.username+"_history.txt"
-                    f=open(filename1,'a')
-                    f.close()
-                    f=open(filename2,'a')
-                    f.close()
+                    v.username = text_usr.GetText()
                     self.Close(True)
                     #打开主界面
                     mainframe=MainFrame(None,-1)
@@ -126,6 +120,17 @@ class LoFrame(wx.Frame):
                     info = "\n" + text_usr.GetText() + "||" + text_pwd.GetText()
                     file_object.write(info)
                     wx.MessageBox("注册成功！现在可以登录！")
+                    v.username = text_usr.GetText()
+                    filename1 = v.username + "_error.txt"
+                    filename2 = v.username + "_history.txt"
+                    filename3 = v.username + "_setting.txt"
+                    f = open(filename1, 'a')
+                    f.close()
+                    f = open(filename2, 'a')
+                    f.close()
+                    f = open(filename3, 'a')
+                    f.close()
+                    customset(filename3,v.setlist)
                 else:
                     wx.MessageBox("用户名已被使用！")
 
