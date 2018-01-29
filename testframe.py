@@ -24,29 +24,54 @@ class PreFrame(wx.Frame):
 
         sta = wx.Button(panel, label='开始测试',pos=(50, 160))
 
+        if v.username!="":
+            filename = v.username + "_setting.txt"
+            ownsetlist = []
+            with open(filename) as file_object:
+                for line in file_object:
+                    ownsetlist.append(line)
+            ownlist = ownsetlist[0].split("||")
+            #print ownlist
+            if ownlist[3].rstrip() != '':
+                self.num.SetValue(ownlist[3])
+            if ownlist[4].rstrip() != '':
+                self.ran.SetValue(ownlist[4])
+            if ownlist[5].rstrip() != '':
+                self.time.SetValue(ownlist[5])
+
         self.Bind(wx.EVT_BUTTON, self.OnSta, sta)
 
         self.Show(True)
 
     def OnSta(self,e):
-        if self.num.GetValue()=="":
-            wx.MessageBox("请输入题目个数！")
-        elif self.ran.GetValue()=="":
-            wx.MessageBox("请输入运算范围！")
-        elif self.time.GetValue()=="":
-            wx.MessageBox("请输入考试时间！")
-        else:
-            v.ques_num=int(self.num.GetValue())
-            v.ques_ran=int(self.ran.GetValue())
-            v.ques_time=int(self.time.GetValue())
-            v.ques_time=v.ques_time*60
-            (q,a,s,m)=getquestionlist(v.ques_num,v.ques_ran)
-            v.questionlist=q
-            v.anslist=a
-            v.scorelist=s
-            v.myanslist=m
-            self.Close()
-            testframe=TestFrame(None,-1)
+        try:
+            if self.num.GetValue() == "":
+                wx.MessageBox("请输入题目个数！")
+            elif self.ran.GetValue() == "":
+                wx.MessageBox("请输入运算范围！")
+            elif self.time.GetValue() == "":
+                wx.MessageBox("请输入考试时间！")
+            else:
+                v.ownsetlist[3] = self.num.GetValue()
+                v.ownsetlist[4] = self.ran.GetValue()
+                v.ownsetlist[5] = self.time.GetValue()
+                filename = v.username + "_setting.txt"
+                customset(filename, v.ownsetlist)
+                v.ques_num = int(self.num.GetValue())
+                v.ques_ran = int(self.ran.GetValue())
+                v.ques_time = int(self.time.GetValue())
+                v.ques_time = v.ques_time * 60
+                (q, a, s, m) = getquestionlist(v.ques_num, v.ques_ran)
+                v.questionlist = q
+                v.anslist = a
+                v.scorelist = s
+                v.myanslist = m
+                self.Close()
+                testframe = TestFrame(None, -1)
+        except ValueError:
+            wx.MessageBox("输入类型错误！")
+
+
 
 class TestFrame(wx.Frame):
 
@@ -66,13 +91,13 @@ class TestFrame(wx.Frame):
         self.timer = wx.Timer(self)  # 创建定时器
         las = wx.Button(panel, label='上一题',size=(70,30) ,pos=(10, 120))
         firm=wx.Button(panel,label='提交',size=(70,30) ,pos=(250,120))
-        nex = wx.Button(panel, label='下一题', size=(70,30) ,pos=(170, 120))
-        tem = wx.Button(panel, label='缓存', size=(70, 30), pos=(90, 120))
+        nex = wx.Button(panel, label='下一题', size=(70,30) ,pos=(90, 120))
+        #tem = wx.Button(panel, label='缓存', size=(70, 30), pos=(90, 120))
 
         self.Bind(wx.EVT_BUTTON, self.OnLas, las)
         self.Bind(wx.EVT_BUTTON, self.OnFirm, firm)
         self.Bind(wx.EVT_BUTTON, self.OnNex, nex)
-        self.Bind(wx.EVT_BUTTON, self.OnTem,tem)
+        #self.Bind(wx.EVT_BUTTON, self.OnTem,tem)
 
         self.Bind(wx.EVT_TIMER, self.OnTimer, self.timer)  # 绑定一个定时器事件
         self.timer.Start(1000)  # 设定时间间隔
@@ -82,9 +107,16 @@ class TestFrame(wx.Frame):
         self.Show(True)
 
     def OnLas(self,e):
+
         if v.quesorder==0:
             wx.MessageBox("已经是第一题！")
         else:
+            v.myanslist[v.quesorder] = self.an.GetValue()
+            t = 0
+            for ietms in v.myanslist:
+                if ietms != "":
+                    t = t + 1
+            self.qnum.SetLabel("已答题数：" + str(t) + "/" + str(v.ques_num))
             v.quesorder=v.quesorder-1
             order=v.quesorder+1
             self.questh.SetLabel("第%d题"%order)
@@ -97,9 +129,16 @@ class TestFrame(wx.Frame):
         gra=GradeFrame(None,-1)
         self.Close()
     def OnNex(self,e):
+
         if v.quesorder==v.ques_num-1:
             wx.MessageBox("已经是最后一题！")
         else:
+            v.myanslist[v.quesorder] = self.an.GetValue()
+            t = 0
+            for ietms in v.myanslist:
+                if ietms != "":
+                    t = t + 1
+            self.qnum.SetLabel("已答题数：" + str(t) + "/" + str(v.ques_num))
             v.quesorder = v.quesorder + 1
             order = v.quesorder + 1
             self.questh.SetLabel("第%d题"%order)
